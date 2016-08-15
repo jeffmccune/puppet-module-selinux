@@ -7,6 +7,7 @@ class selinux (
   $type         = 'targeted',
   $setlocaldefs = undef,
   $config_file  = '/etc/selinux/config',
+  $policytools  = false,
 ) {
 
   validate_re($mode, '^enforcing|permissive|disabled$', "mode is ${mode} and must be either 'enforcing', 'permissive' or 'disabled'.")
@@ -32,5 +33,15 @@ class selinux (
     group   => 'root',
     mode    => '0644',
     content => template('selinux/config.erb'),
+  }
+
+  # Provide the semanage command to allow permanent configuration of the selinux
+  # policy.  This allows the restorecon command to restore policy to a specified
+  # default.
+  if $policytools == true {
+    package { 'policycoreutils-python':
+      ensure => installed,
+      tag    => [ 'semanage' ],
+    }
   }
 }
